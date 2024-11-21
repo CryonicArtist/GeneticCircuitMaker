@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cstdlib>
 
 using namespace std;
 
@@ -12,83 +13,74 @@ enum ComponentType { PROMOTER, REPRESSOR, ACTIVATOR, GENE };
 struct Component {
     string name;
     ComponentType type;
-    double activityLevel;
-    string id;
+    double activityLevel; // 0 to 1 for promoters, effect level for activators/repressors
 };
 
-// Genetic Circuit class
-class GeneticCircuit {
-public:
-    void addComponent(const Component& component) {
-        components.push_back(component);
+// Function to apply activators and repressors on a promoter
+double calculateGeneExpression(double promoterActivity, const vector<Component>& regulators) {
+    double finalActivity = promoterActivity;
+    
+    // Loop through each regulator and adjust the promoter's activity
+    for (const auto& regulator : regulators) {
+        if (regulator.type == ACTIVATOR) {
+            finalActivity += regulator.activityLevel;  // Increase promoter activity
+        } else if (regulator.type == REPRESSOR) {
+            finalActivity -= regulator.activityLevel;  // Decrease promoter activity
+        }
     }
 
-    void simulate() {
-        map<string, double> geneExpression;
-        for (const auto& component : components) {
-            if (component.type == GENE) {
-                double promoterActivity = getPromoterActivity(component.name);
-                vector<Component> regulators = getRegulators(component.name);
-                double expressionLevel = calculateGeneExpression(promoterActivity, regulators);
-                geneExpression[component.name] = expressionLevel;
+    // Clamp the activity level between 0 and 1
+    if (finalActivity > 1.0) finalActivity = 1.0;
+    if (finalActivity < 0.0) finalActivity = 0.0;
+
+    return finalActivity;
+}
+
+// Main function to simulate the genetic circuit
+void simulateCircuit(const vector<Component>& circuit) {
+    map<string, double> geneExpression;  // Map to store gene expression levels
+
+    for (const auto& component : circuit) {
+        if (component.type == GENE) {
+            // Find the corresponding promoter and regulators
+            double promoterActivity = 0.0;
+            vector<Component> regulators;
+
+            for (const auto& comp : circuit) {
+                if (comp.name == component.name && comp.type == PROMOTER) {
+                    promoterActivity = comp.activityLevel;
+                } else if (comp.name == component.name && (comp.type == ACTIVATOR || comp.type == REPRESSOR)) {
+                    regulators.push_back(comp);
+                }
             }
-        }
 
-        // Output results
-        for (const auto& gene : geneExpression) {
-            cout << "Gene: " << gene.first 
-                 << " | Expression Level: " << gene.second * 100 << "%" << endl;
+            // Calculate gene expression based on promoter activity and regulators
+            double expressionLevel = calculateGeneExpression(promoterActivity, regulators);
+            geneExpression[component.name] = expressionLevel;
         }
     }
 
-private:
-    vector<Component> components;
-
-    double getPromoterActivity(const string& geneName) {
-        for (const auto& comp : components) {
-            if (comp.name == geneName && comp.type == PROMOTER) {
-                return comp.activityLevel;
-            }
-        }
-        return 0.0;
+    // Output the results
+    for (const auto& gene : geneExpression) {
+        cout << "Gene: " << gene.first << " | Expression Level: " << gene.second * 100 << "%" << endl;
     }
-
-    vector<Component> getRegulators(const string& geneName) {
-        vector<Component> regulators;
-        for (const auto& comp : components) {
-            if (comp.name == geneName && (comp.type == ACTIVATOR || comp.type == REPRESSOR)) {
-                regulators.push_back(comp);
-            }
-        }
-        return regulators;
-    }
-
-    double calculateGeneExpression(double promoterActivity, const vector<Component>& regulators) {
-        double finalActivity = promoterActivity;
-        for (const auto& regulator : regulators) {
-            if (regulator.type == ACTIVATOR) {
-                finalActivity += regulator.activityLevel;
-            } else if (regulator.type == REPRESSOR) {
-                finalActivity -= regulator.activityLevel;
-            }
-        }
-        return std::clamp(finalActivity, 0.0, 1.0);  // Set the activity level
-    }
-};
+}
 
 int main() {
-    GeneticCircuit circuit;
-    circuit.addComponent({"GeneA", PROMOTER, 0.6, "GeneA_Promoter"});
-    circuit.addComponent({"GeneA", REPRESSOR, 0.3, "GeneA_Repressor"});
-    circuit.addComponent({"GeneA", ACTIVATOR, 0.5, "GeneA_Activator"});
-    circuit.addComponent({"GeneA", GENE, 0.0, "GeneA_Gene"});
+    // Example circuit
+    vector<Component> circuit = {
+        {"GeneA", PROMOTER, 0.6},
+        {"GeneA", REPRESSOR, 0.3},
+        {"GeneA", ACTIVATOR, 0.5},
+        {"GeneA", GENE, 0.0},
+        
+        {"GeneB", PROMOTER, 0.8},
+        {"GeneB", REPRESSOR, 0.4},
+        {"GeneB", GENE, 0.0},
+    };
 
-    circuit.addComponent({"GeneB", PROMOTER, 0.8, "GeneB_Promoter"});
-    circuit.addComponent({"GeneB", REPRESSOR, 0.4, "GeneB_Repressor"});
-    circuit.addComponent({"GeneB", GENE, 0.0, "GeneB_Gene"});
-
-
-    circuit.simulate();
+    // Simulate the genetic circuit
+    simulateCircuit(circuit);
 
     return 0;
 }
