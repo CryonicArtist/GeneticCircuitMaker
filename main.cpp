@@ -72,12 +72,11 @@ private:
                 finalActivity -= regulator.activityLevel;
             }
         }
-        return std::clamp(finalActivity, 0.0, 1.0);  // Clamp the activity level
+        return std::clamp(finalActivity, 0.0, 1.0);  // Set the activity level
     }
 };
 
 int main() {
-    // Example circuit
     GeneticCircuit circuit;
     circuit.addComponent({"GeneA", PROMOTER, 0.6, "GeneA_Promoter"});
     circuit.addComponent({"GeneA", REPRESSOR, 0.3, "GeneA_Repressor"});
@@ -88,7 +87,7 @@ int main() {
     circuit.addComponent({"GeneB", REPRESSOR, 0.4, "GeneB_Repressor"});
     circuit.addComponent({"GeneB", GENE, 0.0, "GeneB_Gene"});
 
-    // Simulate the genetic circuit
+
     circuit.simulate();
 
     return 0;
