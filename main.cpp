@@ -6,7 +6,6 @@
 
 using namespace std;
 
-// Define types of genetic circuit components
 enum ComponentType { PROMOTER, REPRESSOR, ACTIVATOR, GENE };
 
 // Component struct representing each element in the circuit
@@ -70,12 +69,13 @@ int main() {
     // Example circuit
     vector<Component> circuit = {
         {"GeneA", PROMOTER, 0.6},
-        {"GeneA", REPRESSOR, 0.3},
+        {"GeneA", REPRESSOR, 0.5},
         {"GeneA", ACTIVATOR, 0.5},
         {"GeneA", GENE, 0.0},
         
         {"GeneB", PROMOTER, 0.8},
-        {"GeneB", REPRESSOR, 0.4},
+        {"GeneB", REPRESSOR, 0.8},
+        {"GeneB", ACTIVATOR, 0.8},
         {"GeneB", GENE, 0.0},
     };
 
