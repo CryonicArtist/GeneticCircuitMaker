@@ -1,9 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <map>
-#include <algorithm>
-#include <iomanip>
+#include <iomanip> // For better formatting
+#include <cmath>   // For potential dynamic changes in activity levels (optional)
 
 using namespace std;
 
@@ -14,125 +13,75 @@ enum ComponentType { PROMOTER, REPRESSOR, ACTIVATOR, GENE };
 struct Component {
     string name;
     ComponentType type;
-    double activityLevel;  // 0 to 1 for promoters, effect level for activators/repressors
-    string targetGene;     // For regulators, the gene they affect
+    double activityLevel; // 0 to 1 for promoters, effect level for activators/repressors
 };
 
-// Function to apply activators and repressors to a promoter
-double calculateGeneExpression(double promoterActivity, const vector<Component>& regulators) {
-    double finalActivity = promoterActivity;
-
-    for (const auto& regulator : regulators) {
-        if (regulator.type == ACTIVATOR) {
-            finalActivity += regulator.activityLevel;  // Increase promoter activity
-        } else if (regulator.type == REPRESSOR) {
-            finalActivity -= regulator.activityLevel;  // Decrease promoter activity
-        }
-    }
+// Function to calculate gene expression
+double calculateGeneExpression(double promoterActivity, double activatorEffect, double repressorEffect) {
+    double finalActivity = promoterActivity + activatorEffect - repressorEffect;
 
     // Clamp the activity level between 0 and 1
-    return max(0.0, min(1.0, finalActivity));
+    if (finalActivity > 1.0) finalActivity = 1.0;
+    if (finalActivity < 0.0) finalActivity = 0.0;
+
+    return finalActivity;
 }
 
-// Function to dynamically input a genetic circuit
-vector<Component> inputCircuit() {
-    vector<Component> circuit;
-    int numComponents;
+// Function to print the expression-per-time graph
+void printExpressionGraph(const vector<double>& expressionLevels) {
+    cout << "\nExpression Level Over Time (Graph):\n";
+    cout << "Time Step | Expression (%)\n";
+    cout << "---------------------------\n";
 
-    cout << "Enter the number of components in the circuit: ";
-    cin >> numComponents;
-
-    for (int i = 0; i < numComponents; ++i) {
-        Component component;
-        string type;
-
-        cout << "\nComponent " << (i + 1) << ":\n";
-        cout << "Name: ";
-        cin >> component.name;
-
-        cout << "Type (PROMOTER, ACTIVATOR, REPRESSOR, GENE): ";
-        cin >> type;
-
-        if (type == "PROMOTER") component.type = PROMOTER;
-        else if (type == "ACTIVATOR") component.type = ACTIVATOR;
-        else if (type == "REPRESSOR") component.type = REPRESSOR;
-        else if (type == "GENE") component.type = GENE;
-        else {
-            cout << "Invalid type. Skipping component.\n";
-            continue;
-        }
-
-        cout << "Activity Level (0 to 1): ";
-        cin >> component.activityLevel;
-
-        if (component.type != GENE) {
-            cout << "Target Gene: ";
-            cin >> component.targetGene;
-        }
-
-        circuit.push_back(component);
-    }
-
-    return circuit;
-}
-
-// Function to simulate the circuit over time
-void simulateCircuit(const vector<Component>& circuit, int timeSteps) {
-    map<string, double> geneExpression;  // Map to store gene expression levels
-
-    // Initialize gene expression levels
-    for (const auto& component : circuit) {
-        if (component.type == GENE) {
-            geneExpression[component.name] = 0.0;
-        }
-    }
-
-    // Simulate over time
-    for (int t = 0; t < timeSteps; ++t) {
-        map<string, double> newGeneExpression = geneExpression;
-
-        for (const auto& gene : geneExpression) {
-            double promoterActivity = 0.0;
-            vector<Component> regulators;
-
-            // Find the promoter and regulators for this gene
-            for (const auto& component : circuit) {
-                if (component.targetGene == gene.first) {
-                    if (component.type == PROMOTER) {
-                        promoterActivity = component.activityLevel;
-                    } else if (component.type == ACTIVATOR || component.type == REPRESSOR) {
-                        regulators.push_back(component);
-                    }
-                }
-            }
-
-            // Calculate new gene expression level
-            newGeneExpression[gene.first] = calculateGeneExpression(promoterActivity, regulators);
-        }
-
-        // Update gene expression levels
-        geneExpression = newGeneExpression;
-
-        // Output current state
-        cout << "Time Step " << (t + 1) << ":\n";
-        for (const auto& gene : geneExpression) {
-            cout << "  Gene " << gene.first << ": " << fixed << setprecision(2) << gene.second * 100 << "%\n";
-        }
+    for (size_t i = 0; i < expressionLevels.size(); i++) {
+        cout << setw(9) << i + 1 << " | ";
+        int barLength = static_cast<int>(expressionLevels[i] * 50); // Scale bar length for display
+        cout << string(barLength, '*') << " " << fixed << setprecision(2) << expressionLevels[i] * 100 << "%" << endl;
     }
 }
 
 int main() {
-    // Step 1: Input the genetic circuit
-    cout << "Welcome to the Genetic Circuit Simulator!\n";
-    auto circuit = inputCircuit();
+    Component promoter = {"GeneA", PROMOTER, 0.0};
+    Component repressor = {"GeneA", REPRESSOR, 0.0};
+    Component activator = {"GeneA", ACTIVATOR, 0.0};
+    Component gene = {"GeneA", GENE, 1.0}; // Default gene activity level is set to 1.0
 
-    // Step 2: Input simulation parameters
+    // Get user inputs for promoter, repressor, and activator activity levels
+    cout << "Enter promoter activity level (0 to 1): ";
+    cin >> promoter.activityLevel;
+
+    cout << "Enter repressor effect level (0 to 1): ";
+    cin >> repressor.activityLevel;
+
+    cout << "Enter activator effect level (0 to 1): ";
+    cin >> activator.activityLevel;
+
+    // Get the number of time steps
     int timeSteps;
-    cout << "\nEnter the number of time steps for simulation: ";
+    cout << "Enter the number of time steps for simulation: ";
     cin >> timeSteps;
 
-    // Step 3: Simulate the circuit
-    simulateCircuit(circuit, timeSteps);
+    vector<double> expressionLevels; // To store expression levels at each time step
+
+    // Simulate gene expression over time
+    for (int t = 0; t < timeSteps; t++) {
+        // Simulate slight changes over time (optional dynamic behavior, adjust if needed)
+        double dynamicPromoter = promoter.activityLevel * (1 + 0.1 * sin(t)); // Adding variability to promoter
+        double dynamicRepressor = repressor.activityLevel * (1 + 0.05 * cos(t));
+        double dynamicActivator = activator.activityLevel * (1 + 0.05 * sin(t));
+
+        // Calculate gene expression
+        double expressionLevel = calculateGeneExpression(dynamicPromoter, dynamicActivator, dynamicRepressor);
+        expressionLevels.push_back(expressionLevel);
+
+        // Output the expression level at each time step
+        cout << "Time Step " << t + 1 << ": Gene: " << gene.name 
+             << " | Expression Level: " << fixed << setprecision(2) 
+             << expressionLevel * 100 << "%" << endl;
+    }
+
+    // Print the expression graph
+    printExpressionGraph(expressionLevels);
 
     return 0;
 }
