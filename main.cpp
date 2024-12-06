@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <iomanip> // For better formatting
-#include <cmath>   // For potential dynamic changes in activity levels (optional)
+#include <iomanip> 
+#include <cmath>   
 
 using namespace std;
 
@@ -27,7 +27,7 @@ double calculateGeneExpression(double promoterActivity, double activatorEffect, 
     return finalActivity;
 }
 
-// Function to print the expression-per-time graph
+// print the expression-per-time graph
 void printExpressionGraph(const vector<double>& expressionLevels) {
     cout << "\nExpression Level Over Time (Graph):\n";
     cout << "Time Step | Expression (%)\n";
@@ -80,7 +80,6 @@ int main() {
              << expressionLevel * 100 << "%" << endl;
     }
 
-    // Print the expression graph
     printExpressionGraph(expressionLevels);
 
     return 0;
