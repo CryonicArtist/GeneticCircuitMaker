@@ -99,3 +99,4 @@ Additional Notes
 	•	Graph Scaling: Each * symbol in the graph represents approximately 2% of the expression level, providing a simple visual representation of changes over time.
 	•	Dynamic Behavior: The program simulates slight changes in the promoter, activator, and repressor activity levels over time using sine and cosine functions for realistic oscillations.
 
+**This readme was generated my chatgpt**
